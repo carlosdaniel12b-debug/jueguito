@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minijuego de Diseño Multimedia</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+margin:0;
+font-family:Arial,Helvetica,sans-serif;
+background:linear-gradient(135deg,#0f172a,#1e293b);
+color:white;
+min-height:100vh;
+display:flex;
+flex-direction:column;
+}
+
+header{
+font-size:1.9rem;
+text-align:center;
+padding:18px 10px;
+background:#020617;
+border-bottom:1px solid rgba(255,255,255,.1);
+font-weight:bold;
+letter-spacing:.5px;
+}
+
+main{
+flex:1;
+display:flex;
+justify-content:center;
+align-items:center;
+padding:20px;
+}
+
+.container{
+max-width:520px;
+width:100%;
+background:rgba(255,255,255,.05);
+border:1px solid rgba(255,255,255,.1);
+border-radius:20px;
+padding:26px;
+box-shadow:0 20px 60px rgba(0,0,0,.4);
+}
+
+.main-title{
+text-align:center;
+margin:0 0 18px;
+font-size:1.7rem;
+}
+
+.card{
+background:linear-gradient(135deg,#111827,#374151);
+padding:20px;
+border-radius:16px;
+margin-bottom:18px;
+}
+
+.card small{
+letter-spacing:2px;
+text-transform:uppercase;
+opacity:.7;
+display:block;
+margin-bottom:8px;
+}
+
+.card h2{
+margin:0 0 8px;
+}
+
+.card p{
+margin:0;
+opacity:.9;
+}
+
+.question{
+font-size:1.15rem;
+margin-bottom:14px;
+font-weight:bold;
+}
+
+.options{
+display:grid;
+gap:10px;
+}
+
+button{
+border:none;
+padding:13px;
+border-radius:12px;
+font-weight:bold;
+color:white;
+cursor:pointer;
+transition:.2s;
+font-size:.95rem;
+}
+
+button:hover{transform:translateY(-2px)}
+
+.c1{background:#6366f1}
+.c2{background:#ec4899}
+.c3{background:#06b6d4}
+
+.next{
+margin-top:12px;
+background:#f59e0b;
+color:#111827;
+display:none;
+width:100%;
+}
+
+.result{
+margin-top:10px;
+min-height:24px;
+font-weight:bold;
+}
+
+.final{
+text-align:center;
+font-size:1.3rem;
+margin-top:18px;
+font-weight:bold;
+}
+
+footer{
+text-align:center;
+padding:14px 10px;
+background:#020617;
+border-top:1px solid rgba(255,255,255,.1);
+opacity:.8;
+font-weight:bold;
+letter-spacing:1px;
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+Minijuego de Diseño Multimedia
+</header>
+
+<main>
+
+<div class="container">
+
+<div class="main-title">🎨 Reto Visual</div>
+
+<div class="card">
+<small id="escenarioLabel">ESCENARIO 1</small>
+<h2 id="title"></h2>
+<p id="text"></p>
+</div>
+
+<div class="question" id="question"></div>
+<div class="options" id="options"></div>
+<div class="result" id="result"></div>
+
+<button class="next" id="nextBtn">Siguiente</button>
+
+<div class="final" id="final"></div>
+
+</div>
+
+</main>
+
+<footer>
+ITSQMET
+</footer>
+
+<script>
+
+const data=[
+{
+ title:"Uso del logotipo",
+ text:"En el manual de marca se indica que el logotipo siempre debe usarse con sus colores oficiales.",
+ question:"¿Qué debería evitarse?",
+ options:["Cambiar los colores del logo","Usar el logo original","Respetar los colores de marca"],
+ correct:"Cambiar los colores del logo"
+},
+{
+ title:"Zona de seguridad",
+ text:"El manual de marca indica que el logotipo debe tener espacio libre alrededor.",
+ question:"¿Para qué sirve ese espacio?",
+ options:["Para que el logo se vea claro","Para poner más texto","Para decorarlo"],
+ correct:"Para que el logo se vea claro"
+},
+{
+ title:"Tipografía de marca",
+ text:"Una marca define tipografías oficiales en su manual de marca.",
+ question:"¿Por qué es importante usarlas?",
+ options:["Para mantener la identidad visual","Porque son más bonitas","Porque son más grandes"],
+ correct:"Para mantener la identidad visual"
+},
+{
+ title:"Aplicación del logo",
+ text:"El manual muestra ejemplos correctos e incorrectos del logotipo.",
+ question:"¿Cuál sería un uso incorrecto?",
+ options:["Estirar el logo","Usar su proporción original","Usar la versión oficial"],
+ correct:"Estirar el logo"
+}
+];
+
+let i=0;
+let score=0;
+let wrong=null;
+let premioFinal=null;
+
+const escenarioLabel=document.getElementById('escenarioLabel');
+const title=document.getElementById('title');
+const text=document.getElementById('text');
+const question=document.getElementById('question');
+const options=document.getElementById('options');
+const result=document.getElementById('result');
+const nextBtn=document.getElementById('nextBtn');
+const final=document.getElementById('final');
+
+function shuffle(arr){
+for(let j=arr.length-1;j>0;j--){
+const k=Math.floor(Math.random()*(j+1));
+[arr[j],arr[k]]=[arr[k],arr[j]];
+}
+return arr;
+}
+
+function load(){
+const q=data[i];
+
+escenarioLabel.textContent="ESCENARIO "+(i+1);
+
+title.textContent=q.title;
+text.textContent=q.text;
+question.textContent=q.question;
+
+options.innerHTML="";
+result.textContent="";
+final.textContent="";
+nextBtn.style.display="none";
+
+const shuffled=shuffle([...q.options]);
+
+shuffled.forEach((o,index)=>{
+const btn=document.createElement('button');
+btn.textContent=o;
+btn.classList.add('c'+((index%3)+1));
+btn.onclick=()=>answer(o,q.correct);
+options.appendChild(btn);
+});
+}
+
+function answer(selected,correct){
+const btns=document.querySelectorAll('.options button');
+btns.forEach(b=>b.disabled=true);
+
+if(selected===correct){
+result.textContent="Correcto";
+score++;
+}else{
+result.textContent="Incorrecto";
+if(wrong===null) wrong=i+1;
+}
+
+nextBtn.style.display="block";
+}
+
+nextBtn.onclick=()=>{
+i++;
+if(i<data.length){
+load();
+}else{
+finish();
+}
+}
+
+function finish(){
+options.innerHTML="";
+question.textContent="Resultado final";
+result.textContent="";
+nextBtn.style.display="none";
+
+escenarioLabel.textContent="FINAL";
+title.textContent="Juego terminado";
+text.textContent="Mira tu resultado.";
+
+if(score===data.length){
+if(!premioFinal){
+const premios=[
+"🎉 ¡Felicidades! Ganaste un recuerdo",
+"🎉 ¡Felicidades! Ganaste un bocadito"
+];
+premioFinal=premios[Math.floor(Math.random()*premios.length)];
+}
+final.textContent=premioFinal;
+}else{
+final.textContent="Te equivocaste en el escenario "+wrong+".";
+}
+}
+
+load();
+
+</script>
+
+</body>
+</html>
